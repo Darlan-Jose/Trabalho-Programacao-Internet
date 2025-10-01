@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Sistema Car Dealer{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <!-- Cabeçalho -->
+        <div class="mb-5">
+            <h1 class="display-4 text-primary">🚗 Sistema de Concessionária de Automóveis</h1>
+            <p class="lead">Sistema de gerenciamento para concessionárias e administradores</p>
+        </div>
+
+        <!-- Cards de Ação -->
+        <div class="row justify-content-center">
+            {% if user.is_authenticated %}
+                <!-- Usuário LOGADO -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-primary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tachometer-alt fa-3x text-primary mb-3"></i>
+                            <h3 class="card-title">Acessar Dashboard</h3>
+                            <p class="card-text">Acesse sua área de trabalho personalizada</p>
+                            
+                            {% if user.groups.all.0.name == 'Admin' %}
+                                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary btn-lg w-100">
+                                    Dashboard Admin
+                                </a>
+                            {% elif user.groups.all.0.name == 'Dealer' %}
+                                <a href="{% url 'dealer_dashboard' %}" class="btn btn-primary btn-lg w-100">
+                                    Dashboard Dealer
+                                </a>
+                            {% else %}
+                                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg w-100">
+                                    Meu Dashboard
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-secondary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sign-out-alt fa-3x text-secondary mb-3"></i>
+                            <h3 class="card-title">Sair do Sistema</h3>
+                            <p class="card-text">Encerrar sua sessão com segurança</p>
+                            <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-lg w-100">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Usuário NÃO LOGADO -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sign-in-alt fa-3x text-success mb-3"></i>
+                            <h3 class="card-title">Fazer Login</h3>
+                            <p class="card-text">Acesse o sistema com suas credenciais</p>
+                            <a href="{% url 'login' %}" class="btn btn-success btn-lg w-100">
+                                Entrar no Sistema
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Status da sessão (apenas para debug) -->
+        {% if user.is_authenticated %}
+        <div class="mt-4">
+            <small class="text-muted">
+                Logado como: <strong>{{ user.username }}</strong> | 
+                Grupo: <strong>{% for group in user.groups.all %}{{ group.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong> |
+                <a href="{% url 'logout' %}" class="text-muted">Sair</a>
+            </small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+<!-- templates/authentication/admin_dashboard.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Dashboard do Administrador</h2>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Informações de Segurança</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Usuário:</strong> {{ user.username }}</p>
+                <p><strong>Grupos:</strong> {{ user_groups|join:", " }}</p>
+                <p><strong>Sessão ID:</strong> {{ session_key }}</p>
+                <p><strong>Último login:</strong> {{ user.last_login }}</p>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <a href="{% url 'logout' %}" class="btn btn-danger">Sair com Limpeza de Sessão</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
