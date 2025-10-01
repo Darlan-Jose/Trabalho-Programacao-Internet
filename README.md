@@ -43,7 +43,7 @@
    py manage.py createcachetable
    ```
 
-   Em seguida, execute o DDL no MySQL: https://github.com/Darlan-Jose/Repositorio-teste/blob/main/data/DDL.sql.
+   Em seguida, execute o DDL no MySQL: https://github.com/Darlan-Jose/Trabalho-Programacao-Internet/blob/main/data/DDL.sql
 
 5. **Iniciar o servidor**
 
