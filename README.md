@@ -34,7 +34,7 @@
    > ⚠️ Caso utilize outro nome, será necessário alterar a configuração de `DATABASES` no arquivo `settings.py`.
 
 3. **Criar o usuário no MySQL**
-   Veja o tutorial completo na seção [Criando um usuário no MySQL Workbench (Windows)](https://github.com/Darlan-Jose/Trabalho-Programacao-Internet/edit/main/README.md#%EF%B8%8F-criando-um-usu%C3%A1rio-no-mysql-workbench-windows)
+   Veja o tutorial completo na seção [Criando um usuário no MySQL Workbench (Windows)](https://github.com/Darlan-Jose/Trabalho-Programacao-Internet/blob/main/README.md#%EF%B8%8F-criando-um-usu%C3%A1rio-no-mysql-workbench-windows)
 4. **Rodar as migrações**
    No ambiente virtual do projeto, execute:
 
