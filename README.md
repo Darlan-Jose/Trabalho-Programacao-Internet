@@ -24,7 +24,7 @@
    Clone o repositório do GitHub (recomendado clonar dentro de um *project environment*).
 
    ```bash
-   git clone https://github.com/Darlan-Jose/Repositorio-teste.git
+   git clone https://github.com/Darlan-Jose/Trabalho-Programacao-Internet.git
    cd Repositorio-teste
    ```
 
