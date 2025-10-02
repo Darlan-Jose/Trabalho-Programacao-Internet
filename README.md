@@ -25,7 +25,7 @@
 
    ```bash
    git clone https://github.com/Darlan-Jose/Trabalho-Programacao-Internet.git
-   cd Repositorio-teste
+   cd Trabalho-Programacao-Internet
    ```
 
 2. **Criar o banco de dados**
