@@ -11,10 +11,11 @@
 
 ### Dependências
 
-* `django`
-* `wheel` *(caso ocorra erro de comunicação com o MySQL no Windows)*
-* `mysqlclient`
-* `bcrypt`
+Execute o comando:
+```bash
+pip install -r requirements.txt
+```
+Ou instale as dependências manualmente.
 
 ---
 
