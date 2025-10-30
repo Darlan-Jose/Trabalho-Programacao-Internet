@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Concessionárias Disponíveis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Concessionárias Parceiras</h2>
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Voltar ao Início
+                </a>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Concessionárias Disponíveis</h5>
+                            <h2 class="card-text">{{ total_dealers }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Ação Rápida</h5>
+                            <p class="card-text">Ver todos os veículos</p>
+                            <a href="{% url 'public_all_vehicles' %}" class="btn btn-light btn-sm">
+                                Explorar Frota
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Dealers -->
+            <div class="row">
+                {% for dealer in dealers %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-store"></i> {{ dealer.dealer_name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <strong>ID:</strong> {{ dealer.dealer_id }}<br>
+                                <strong>Desde:</strong> {{ dealer.created_at|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'public_dealer_vehicles' dealer.dealer_id %}" 
+                               class="btn btn-primary w-100">
+                                <i class="fas fa-car"></i> Ver Veículos Disponíveis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        <h4 class="alert-heading">Nenhuma concessionária disponível</h4>
+                        <p class="mb-0">No momento não há concessionárias cadastradas para visualização pública.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Botão alternativo -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <p>Ou visualize todos os veículos disponíveis:</p>
+                    <a href="{% url 'public_all_vehicles' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-list"></i> Ver Todos os Veículos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

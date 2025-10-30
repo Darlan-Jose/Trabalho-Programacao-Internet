@@ -7,7 +7,7 @@
     <div class="col-md-8 text-center">
         <!-- Cabeçalho -->
         <div class="mb-5">
-            <h1 class="display-4 text-primary">🚗 Sistema de Concessionária de Automóveis</h1>
+            <h1 class="display-4 text-primary">🚗 Car Dealer System</h1>
             <p class="lead">Sistema de gerenciamento para concessionárias e administradores</p>
         </div>
 
@@ -66,6 +66,25 @@
                     </div>
                 </div>
             {% endif %}
+            
+            <!-- NOVO CARD - ÁREA PÚBLICA (sempre visível) -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-info">
+                    <div class="card-body text-center">
+                        <i class="fas fa-car fa-3x text-info mb-3"></i>
+                        <h3 class="card-title">Ver Veículos</h3>
+                        <p class="card-text">Explore nossa frota de veículos disponíveis</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'public_dealers' %}" class="btn btn-info btn-lg">
+                                Concessionárias
+                            </a>
+                            <a href="{% url 'public_all_vehicles' %}" class="btn btn-outline-info">
+                                Todos os Veículos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Status da sessão (apenas para debug) -->

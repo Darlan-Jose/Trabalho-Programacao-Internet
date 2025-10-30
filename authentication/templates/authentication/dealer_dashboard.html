@@ -8,7 +8,21 @@
             <div class="card-body">
                 <h5 class="card-title">Bem-vindo, {{ user.username }}!</h5>
                 <p class="card-text">Você está logado como Dealer.</p>
-                <p class="card-text">Está página ainda está sobre construção.</p>
+                
+                <!-- NOVO CARD COM LINK PARA VEÍCULOS -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Veículos Disponíveis</h5>
+                                <p class="card-text">Visualize todos os veículos disponíveis em estoque.</p>
+                                <a href="{% url 'dealer_vehicles' %}" class="btn btn-light">
+                                    Acessar Veículos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

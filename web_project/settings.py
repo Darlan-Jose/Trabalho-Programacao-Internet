@@ -193,6 +193,10 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
 ]
 
+# Configurações de arquivos de mídia
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Configurações de segurança - Bloqueio por tentativas
 LOGIN_SECURITY_CONFIG = {
     'MAX_LOGIN_ATTEMPTS': 5,  # Número máximo de tentativas

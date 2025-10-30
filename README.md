@@ -11,9 +11,9 @@
 
 ### Dependências
 
-Execute o comando:
+Para instalar as dependência execute o comando:
 ```bash
-pip install -r requirements.txt
+py -m pip install -r requirements.txt
 ```
 Ou instale as dependências manualmente.
 
@@ -25,10 +25,14 @@ Ou instale as dependências manualmente.
    Clone o repositório do GitHub (recomendado clonar dentro de um *project environment*).
    
 [Como criar um ambiente virtual (project environment)](https://github.com/Darlan-Jose/Trabalho-Programacao-Internet/blob/main/README.md#como-criar-um-ambiente-virtual-visual-studio-code)
+
+
    ```bash
    git clone https://github.com/Darlan-Jose/Trabalho-Programacao-Internet.git
    cd Trabalho-Programacao-Internet
    ```
+
+2. [Instale as dependências](https://github.com/Darlan-Jose/Trabalho-Programacao-Internet#depend%C3%AAncias)
 
 3. **Criar o banco de dados**
    Crie um banco de dados MySQL, preferencialmente com o nome `stc`.
@@ -43,16 +47,16 @@ Ou instale as dependências manualmente.
    ```bash
    py manage.py migrate
    py manage.py createcachetable
+   py manage.py popular_banco
+   python manage.py popular_banco --reset #Mesmo comando do que acima, mas para resetar e recriar
    ```
-
-   Em seguida, execute o DDL no MySQL: https://github.com/Darlan-Jose/Trabalho-Programacao-Internet/blob/main/data/DDL.sql
 
 6. **Iniciar o servidor**
 
    ```bash
    py manage.py runserver
    ```
-
+> ⚠️ Para testar as funcionalidades de CRUD, é necessário acessar o menu de admin do django, por isso crie um superusuário antes de executar o comando acima, instruções sobre como criar um [superusuário](https://github.com/Darlan-Jose/Repositorio-teste#-criando-um-superusu%C3%A1rio-admin-no-django)).
 7. **Acessar no navegador**
    Abra: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
@@ -69,6 +73,27 @@ Ou instale as dependências manualmente.
 
 * Nome: `D001`
 * Senha: `dealer123`
+
+---
+
+## 👤 Criando um Superusuário (Admin) no Django:
+1. **Crie o superusuário:**
+Execute o comando abaixo e siga as instruções do terminal:
+
+`py manage.py createsuperuser`
+
+Você precisará informar:
+
+- **Username** (nome de usuário)
+    
+- **Email** (opcional)
+    
+- **Password** (senha)
+
+2. Acesse o painel admin
+Abra o navegador e vá para:
+`http://127.0.0.1:8000/admin/`
+Entre com o **username** e **senha** criados no passo 1.
 
 ---
 

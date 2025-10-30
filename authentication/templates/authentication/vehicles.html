@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Veículos Disponíveis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Veículos Disponíveis</h2>
+                <a href="{% url 'dealer_dashboard' %}" class="btn btn-secondary">
+                    Voltar ao Dashboard
+                </a>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total de Modelos</h5>
+                            <h2 class="card-text">{{ total_vehicles }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Unidades Disponíveis</h5>
+                            <h2 class="card-text">{{ total_available }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Marcas</h5>
+                            <h2 class="card-text">{{ vehicles_by_brand|length }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Veículos por Marca -->
+            {% for brand, brand_vehicles in vehicles_by_brand.items %}
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">
+                        {{ brand_vehicles.0.get_brand_display }}
+                        <span class="badge bg-secondary">{{ brand_vehicles|length }} modelos</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for vehicle in brand_vehicles %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 {% if vehicle.quantity_available == 0 %}border-danger{% else %}border-success{% endif %}">
+                                <!-- IMAGEM DO VEÍCULO -->
+                                <div class="text-center p-3">
+                                    {% if vehicle.image %}
+                                        <img src="{{ vehicle.image.url }}" 
+                                             alt="{{ vehicle.name }}" 
+                                             class="img-fluid rounded"
+                                             style="max-height: 150px; width: auto;">
+                                    {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                             style="height: 150px;">
+                                            <span class="text-muted">Sem imagem</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-body">
+                                    <h5 class="card-title text-center">{{ vehicle.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Tipo:</strong> {{ vehicle.get_body_type_display }}<br>
+                                        <strong>Marca:</strong> {{ vehicle.get_brand_display }}<br>
+                                        <strong>Disponível:</strong> 
+                                        <span class="badge {% if vehicle.quantity_available > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ vehicle.quantity_available }} unidades
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        Atualizado em: {{ vehicle.updated_at|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-warning">
+                <h4 class="alert-heading">Nenhum veículo encontrado</h4>
+                <p class="mb-0">Não há veículos disponíveis no momento.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

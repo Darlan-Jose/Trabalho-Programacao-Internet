@@ -1,14 +1,15 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 import time
-from .forms import CustomAuthenticationForm
+from .forms import CustomAuthenticationForm, PurchaseForm  
 from .decorators import admin_required, dealer_required
 from .utils import increment_login_attempts, reset_login_attempts, is_account_locked, get_remaining_attempts
+from .models import Vehicle, Dealer, Purchase  
 
 @csrf_protect
 @csrf_protect
@@ -237,5 +238,173 @@ def home_view(request):
     }
     
     response = render(request, 'authentication/home.html', context)
+    set_secure_headers(response)
+    return response
+
+@dealer_required
+def dealer_vehicles(request):
+    """
+    View para listar veículos disponíveis para dealers
+    """
+    vehicles = Vehicle.objects.all().order_by('brand', 'name')
+    
+    # Estatísticas
+    total_vehicles = vehicles.count()
+    total_available = sum(vehicle.quantity_available for vehicle in vehicles)
+    
+    # Agrupar por marca para o template
+    vehicles_by_brand = {}
+    for vehicle in vehicles:
+        if vehicle.brand not in vehicles_by_brand:
+            vehicles_by_brand[vehicle.brand] = []
+        vehicles_by_brand[vehicle.brand].append(vehicle)
+    
+    context = {
+        'user': request.user,
+        'vehicles': vehicles,
+        'vehicles_by_brand': vehicles_by_brand,
+        'total_vehicles': total_vehicles,
+        'total_available': total_available,
+    }
+    
+    response = render(request, 'authentication/vehicles.html', context)
+    set_secure_headers(response)
+    return response
+
+def public_dealers(request):
+    """
+    Página pública com lista de dealers disponíveis
+    """
+    dealers = Dealer.objects.filter(is_public=True).order_by('dealer_name')
+    
+    context = {
+        'dealers': dealers,
+        'total_dealers': dealers.count(),
+    }
+    
+    response = render(request, 'authentication/public_dealers.html', context)
+    set_secure_headers(response)
+    return response
+
+def public_dealer_vehicles(request, dealer_id):
+    """
+    Página pública com veículos disponíveis de um dealer específico
+    """
+    dealer = get_object_or_404(Dealer, dealer_id=dealer_id, is_public=True)
+    vehicles = Vehicle.objects.all().order_by('brand', 'name')
+    
+    # Estatísticas
+    total_vehicles = vehicles.count()
+    total_available = sum(vehicle.quantity_available for vehicle in vehicles)
+    
+    # Agrupar por marca para o template
+    vehicles_by_brand = {}
+    for vehicle in vehicles:
+        if vehicle.brand not in vehicles_by_brand:
+            vehicles_by_brand[vehicle.brand] = []
+        vehicles_by_brand[vehicle.brand].append(vehicle)
+    
+    context = {
+        'dealer': dealer,
+        'vehicles': vehicles,
+        'vehicles_by_brand': vehicles_by_brand,
+        'total_vehicles': total_vehicles,
+        'total_available': total_available,
+    }
+    
+    response = render(request, 'authentication/public_vehicles.html', context)
+    set_secure_headers(response)
+    return response
+
+def purchase_vehicle(request, dealer_id, vehicle_id):
+    """
+    View para processar a compra de um veículo
+    """
+    dealer = get_object_or_404(Dealer, dealer_id=dealer_id, is_public=True)
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    
+    # Verificar se o veículo está disponível
+    if vehicle.quantity_available <= 0:
+        messages.error(request, 'Este veículo não está mais disponível para compra.')
+        return redirect('public_dealer_vehicles', dealer_id=dealer.dealer_id)
+    
+    if request.method == 'POST':
+        form = PurchaseForm(request.POST)
+        if form.is_valid():
+            try:
+                # Criar a compra
+                purchase = form.save(commit=False)
+                purchase.vehicle = vehicle
+                purchase.dealer = dealer
+                purchase.save()
+                
+                # Reduzir a quantidade disponível do veículo
+                vehicle.quantity_available -= 1
+                vehicle.save()
+                
+                messages.success(
+                    request, 
+                    f'Compra realizada com sucesso! Código: {purchase.purchase_code}'
+                )
+                
+                # Redirecionar para página de confirmação
+                return redirect('purchase_success', purchase_code=purchase.purchase_code)
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao processar compra: {str(e)}')
+        else:
+            messages.error(request, 'Por favor, corrija os erros no formulário.')
+    else:
+        form = PurchaseForm()
+    
+    context = {
+        'form': form,
+        'vehicle': vehicle,
+        'dealer': dealer,
+    }
+    
+    response = render(request, 'authentication/purchase_form.html', context)
+    set_secure_headers(response)
+    return response
+
+def purchase_success(request, purchase_code):
+    """
+    Página de confirmação de compra
+    """
+    purchase = get_object_or_404(Purchase, purchase_code=purchase_code)
+    
+    context = {
+        'purchase': purchase,
+    }
+    
+    response = render(request, 'authentication/purchase_success.html', context)
+    set_secure_headers(response)
+    return response
+
+def public_all_vehicles(request):
+    """
+    Página pública com todos os veículos disponíveis (sem dealer específico)
+    """
+    vehicles = Vehicle.objects.all().order_by('brand', 'name')
+    
+    # Estatísticas
+    total_vehicles = vehicles.count()
+    total_available = sum(vehicle.quantity_available for vehicle in vehicles)
+    
+    # Agrupar por marca para o template
+    vehicles_by_brand = {}
+    for vehicle in vehicles:
+        if vehicle.brand not in vehicles_by_brand:
+            vehicles_by_brand[vehicle.brand] = []
+        vehicles_by_brand[vehicle.brand].append(vehicle)
+    
+    context = {
+        'vehicles': vehicles,
+        'vehicles_by_brand': vehicles_by_brand,
+        'total_vehicles': total_vehicles,
+        'total_available': total_available,
+    }
+    
+    response = render(request, 'authentication/public_vehicles.html', context)
     set_secure_headers(response)
     return response

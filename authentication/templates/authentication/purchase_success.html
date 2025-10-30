@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Compra Realizada com Sucesso{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Compra Realizada com Sucesso!
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-car fa-5x text-success mb-3"></i>
+                        <h3>Parabéns pela sua aquisição!</h3>
+                    </div>
+                    
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5>Resumo da Compra</h5>
+                                    <p class="mb-1">
+                                        <strong>Veículo:</strong> {{ purchase.vehicle.name }}<br>
+                                        <strong>Concessionária:</strong> {{ purchase.dealer.dealer_name }}<br>
+                                        <strong>Código da Compra:</strong> 
+                                        <span class="badge bg-primary">{{ purchase.purchase_code }}</span><br>
+                                        <strong>Data:</strong> {{ purchase.purchase_date|date:"d/m/Y H:i" }}<br>
+                                        <strong>Cliente:</strong> {{ purchase.customer_name }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <h6><i class="fas fa-info-circle"></i> Próximos Passos</h6>
+                        <p class="mb-0">
+                            Nossa equipe entrará em contato através do e-mail 
+                            <strong>{{ purchase.email }}</strong> ou telefone 
+                            <strong>{{ purchase.phone }}</strong> dentro de 24 horas úteis 
+                            para finalizar os detalhes da entrega.
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'public_dealers' %}" class="btn btn-primary me-2">
+                            <i class="fas fa-store"></i> Ver Mais Concessionárias
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home"></i> Página Inicial
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
