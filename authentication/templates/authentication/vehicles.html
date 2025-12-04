@@ -7,13 +7,111 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Veículos Disponíveis</h2>
-                <a href="{% url 'dealer_dashboard' %}" class="btn btn-secondary">
-                    Voltar ao Dashboard
-                </a>
+                <h2>
+                    {% if is_search %}
+                        Resultados da Pesquisa
+                    {% else %}
+                        Veículos Disponíveis
+                    {% endif %}
+                </h2>
+                <div>
+                    <a href="{% url 'search_vehicles' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Nova Pesquisa
+                    </a>
+                    <a href="{% url 'dealer_dashboard' %}" class="btn btn-secondary">
+                        Voltar ao Dashboard
+                    </a>
+                </div>
             </div>
 
+            <!-- FORMULÁRIO DE PESQUISA -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter"></i> Critérios de Pesquisa
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'search_vehicles' %}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Nome do Veículo</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ search_name }}" placeholder="Digite o nome do veículo...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Marca</label>
+                                    <select class="form-control" id="brand" name="brand">
+                                        <option value="ALL">Todas as Marcas</option>
+                                        {% for value, label in brand_choices %}
+                                            <option value="{{ value }}" {% if search_brand == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="body_type" class="form-label">Tipo de Carroceria</label>
+                                    <select class="form-control" id="body_type" name="body_type">
+                                        <option value="ALL">Todos os Tipos</option>
+                                        {% for value, label in body_type_choices %}
+                                            <option value="{{ value }}" {% if search_body_type == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Pesquisar
+                                </button>
+                                <a href="{% url 'search_vehicles' %}" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Limpar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- MENSAGEM DE NENHUM RESULTADO -->
+            {% if is_search and total_vehicles == 0 %}
+            <div class="alert alert-warning">
+                <h4 class="alert-heading">Nenhum veículo encontrado</h4>
+                <p class="mb-0">
+                    Não foram encontrados veículos que correspondam aos seus critérios de pesquisa.
+                    {% if search_name or search_brand != 'ALL' or search_body_type != 'ALL' %}
+                        Tente ajustar os filtros ou <a href="{% url 'dealer_vehicles' %}" class="alert-link">ver todos os veículos</a>.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- MENSAGEM DE RESULTADOS DA PESQUISA -->
+            {% if is_search and total_vehicles > 0 %}
+            <div class="alert alert-info">
+                <h5 class="alert-heading">
+                    <i class="fas fa-check-circle"></i> Pesquisa concluída
+                </h5>
+                <p class="mb-0">
+                    Foram encontrados <strong>{{ total_vehicles }}</strong> veículo(s) que correspondem aos seus critérios.
+                    {% if search_name %}<br><strong>Nome:</strong> "{{ search_name }}"{% endif %}
+                    {% if search_brand != 'ALL' %}<br><strong>Marca:</strong> {{ search_brand }}{% endif %}
+                    {% if search_body_type != 'ALL' %}<br><strong>Tipo:</strong> {{ search_body_type }}{% endif %}
+                </p>
+            </div>
+            {% endif %}
+
             <!-- Estatísticas -->
+            {% if total_vehicles > 0 %}
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="card bg-info text-white">
@@ -40,6 +138,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
 
             <!-- Lista de Veículos por Marca -->
             {% for brand, brand_vehicles in vehicles_by_brand.items %}
@@ -93,10 +192,12 @@
                 </div>
             </div>
             {% empty %}
-            <div class="alert alert-warning">
-                <h4 class="alert-heading">Nenhum veículo encontrado</h4>
-                <p class="mb-0">Não há veículos disponíveis no momento.</p>
-            </div>
+                {% if not is_search %}
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading">Nenhum veículo encontrado</h4>
+                    <p class="mb-0">Não há veículos disponíveis no momento.</p>
+                </div>
+                {% endif %}
             {% endfor %}
         </div>
     </div>

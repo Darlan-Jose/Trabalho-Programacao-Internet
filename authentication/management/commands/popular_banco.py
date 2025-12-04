@@ -58,31 +58,57 @@ class Command(BaseCommand):
         # Criar Veículos
         try:
             vehicles_data = [
-                {'name': 'Car_toyota1', 'brand': 'TOYOTA', 'body_type': 'SUV', 'quantity_available': 5},
-                {'name': 'Car_toyota2', 'brand': 'TOYOTA', 'body_type': 'SEDAN', 'quantity_available': 3},
-                {'name': 'Car_toyota3', 'brand': 'TOYOTA', 'body_type': 'HATCHBACK', 'quantity_available': 8},
-                {'name': 'Car_byd1', 'brand': 'BYD', 'body_type': 'SUV', 'quantity_available': 4},
-                {'name': 'Car_byd2', 'brand': 'BYD', 'body_type': 'SEDAN', 'quantity_available': 6},
-                {'name': 'Car_byd3', 'brand': 'BYD', 'body_type': 'HATCHBACK', 'quantity_available': 2},
-            ]
+            {
+                'name': 'SW4', 
+                'brand': 'TOYOTA', 
+                'body_type': 'SUV', 
+                'quantity_available': 5, 
+                'image': 'vehicles/toyota_suv_1.jpeg'
+            },
+            {
+                'name': 'Corolla', 
+                'brand': 'TOYOTA', 
+                'body_type': 'SEDAN', 
+                'quantity_available': 3, 
+                'image': 'vehicles/toyota_sedan_1.jpeg'
+            },
+            {
+                'name': 'Supra', 
+                'brand': 'TOYOTA', 
+                'body_type': 'HATCHBACK', 
+                'quantity_available': 8, 
+                'image': 'vehicles/toyota_hatchback_1.jpeg'
+            },
+            {
+                'name': 'Yuan Up', 
+                'brand': 'BYD', 
+                'body_type': 'SUV', 
+                'quantity_available': 4, 
+                'image': 'vehicles/byd_suv_1.jpeg'
+            },
+            {
+                'name': 'King', 
+                'brand': 'BYD', 
+                'body_type': 'SEDAN', 
+                'quantity_available': 6, 
+                'image': 'vehicles/byd_sedan_1.png'
+            },
+            {
+                'name': 'Han', 
+                'brand': 'BYD', 
+                'body_type': 'HATCHBACK', 
+                'quantity_available': 2, 
+                'image': 'vehicles/byd_hatchback_1.jpeg'
+            },
+        ]
             
-            for data in vehicles_data:
-                vehicle, created = Vehicle.objects.get_or_create(
-                    name=data['name'],
-                    defaults={
-                        'brand': data['brand'],
-                        'body_type': data['body_type'],
-                        'quantity_available': data['quantity_available']
-                    }
-                )
-                if created:
-                    self.stdout.write(
-                        self.style.SUCCESS(f"✅ Veículo '{vehicle.name}' criado com sucesso!")
-                    )
+            for vehicle_data in vehicles_data:
+                # Verifica se o veículo já existe para evitar duplicação
+                if not Vehicle.objects.filter(name=vehicle_data['name']).exists():
+                    Vehicle.objects.create(**vehicle_data)
+                    print(f"Veículo {vehicle_data['name']} criado com sucesso!")
                 else:
-                    self.stdout.write(
-                        self.style.WARNING(f"⚠️  Veículo '{vehicle.name}' já existe!")
-                    )
+                    print(f"Veículo {vehicle_data['name']} já existe!")
                     
             self.stdout.write(self.style.SUCCESS('✅ Veículos criados com sucesso!'))
             

@@ -45,10 +45,11 @@ Ou instale as dependências manualmente.
    No ambiente virtual do projeto, execute:
 
    ```bash
+   py manage.py makemigrations
    py manage.py migrate
    py manage.py createcachetable
    py manage.py popular_banco
-   python manage.py popular_banco --reset #Mesmo comando do que acima, mas para resetar e recriar
+   py manage.py popular_banco --reset #Mesmo comando do que acima, mas para resetar e recriar
    ```
 
 6. **Iniciar o servidor**
@@ -56,7 +57,7 @@ Ou instale as dependências manualmente.
    ```bash
    py manage.py runserver
    ```
-> ⚠️ Para testar as funcionalidades de CRUD, é necessário acessar o menu de admin do django, por isso crie um superusuário antes de executar o comando acima, instruções sobre como criar um [superusuário](https://github.com/Darlan-Jose/Repositorio-teste#-criando-um-superusu%C3%A1rio-admin-no-django)).
+> ⚠️ Para testar as funcionalidades de CRUD, é necessário acessar o menu de admin do django, por isso crie um superusuário antes de executar o comando acima, instruções sobre como criar um [superusuário](Criando um Superusuário (Admin) no Django).
 7. **Acessar no navegador**
    Abra: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
@@ -79,9 +80,7 @@ Ou instale as dependências manualmente.
 ## 👤 Criando um Superusuário (Admin) no Django:
 1. **Crie o superusuário:**
 Execute o comando abaixo e siga as instruções do terminal:
-
-`py manage.py createsuperuser`
-
+`python manage.py createsuperuser`
 Você precisará informar:
 
 - **Username** (nome de usuário)
@@ -108,49 +107,219 @@ Entre com o **username** e **senha** criados no passo 1.
 
 ---
 
+# Integração ViaCEP - API de Busca de Endereço
+
+## 1. Identificação da API
+
+**Nome da API:** ViaCEP  
+**Categoria:** API REST pública e gratuita  
+**Onde será usada:** Formulário de compra de veículos  
+**Arquivos envolvidos:** `authentication/views.py` e `authentication/templates/authentication/purchase_form.html`
+
+**Por que escolhi essa API:**
+
+- **Ela melhora a experiência do usuário**, já que preenche o endereço automaticamente.
+    
+- **É confiável**, pois é amplamente usada no Brasil.
+    
+- **É simples de integrar**, não precisa de autenticação.
+    
+- **É gratuita**, ideal para projetos educacionais.
+    
+
+## 2. Descrição Técnica
+
+### Finalidade da API
+
+A ViaCEP fornece dados de endereço a partir de um CEP. Isso reduz erros de digitação e agiliza o preenchimento do formulário.
+
+### Principais Endpoints
+
+- **Consulta por CEP:** `GET https://viacep.com.br/ws/{cep}/json/`
+    
+- **Consulta por endereço:** `GET https://viacep.com.br/ws/{UF}/{cidade}/{logradouro}/json/`
+    
+
+### Formatos de Entrada e Saída
+
+- **Entrada:** CEP informado diretamente na URL
+    
+- **Saída:** JSON com os dados do endereço
+    
+- **Exemplo:**
+    
+    ```json
+    {
+      "cep": "01001-000",
+      "logradouro": "Praça da Sé",
+      "complemento": "lado ímpar",
+      "bairro": "Sé",
+      "localidade": "São Paulo",
+      "uf": "SP",
+      "ibge": "3550308",
+      "gia": "1004",
+      "ddd": "11",
+      "siafi": "7107"
+    }
+    ```
+    
+
+### Autenticação
+
+- **Nenhuma.**  
+    A API é aberta para uso não comercial.
+    
+
+### Limitações e Regras
+
+- **Até 10 requisições por segundo**
+    
+- **Alta disponibilidade**, mas sem SLA
+    
+- **Aceita apenas CEPs válidos de 8 dígitos**
+    
+- **Recomendado timeout de 10 segundos**
+    
+
+### Fluxo da Integração
+
+**1. Modelo (models.py):**
+
+```python
+cep = models.CharField(max_length=9, verbose_name='CEP', blank=True)
+street = models.CharField(max_length=100, verbose_name='Rua', blank=True)
+# ... outros campos
+```
+
+_Por quê:_ A compra precisa armazenar o endereço completo quando disponível.
+
+**2. View (views.py):**  
+
+
+_Por quê:_ Criei um endpoint próprio para tratar erros e permitir cache no futuro.
+
+**3. Template (purchase_form.html):**  
+
+
+_Por quê:_ O usuário ganha uma experiência mais suave com preenchimento automático e busca manual.
+
+### Bibliotecas Utilizadas
+
+1. **`requests`**  
+    Cliente HTTP simples e padronizado em Python.
+    
+    ```python
+    import requests
+    response = requests.get(url, timeout=10)
+    ```
+    
+2. **Fetch API (JavaScript)**  
+    Facilita a comunicação entre frontend e backend.
+    
+    ```javascript
+    fetch(`/api/cep/${cep}/`)
+        .then(response => response.json())
+    ```
+    
+3. **Django REST Framework**  
+    Usado para criar o endpoint REST e serializar dados.
+    
+    ```python
+    @api_view(['GET'])
+    @permission_classes([AllowAny])
+    ```
+    
+
+### Decisões Técnicas
+
+1. **Endpoint próprio (/api/cep/)**  
+    Permite tratar erros de forma consistente, implementar cache depois e isolar mudanças da API externa.
+    
+2. **Timeout de 10 segundos**  
+    Evita travamentos caso a API demore a responder.
+    
+3. **Feedback visual**  
+    Ajuda o usuário com mensagens claras e estados visuais fáceis de entender.
+    
+4. **Campos opcionais**  
+    Nem sempre o usuário tem todas as informações no momento da compra.
+    
+
+### Fluxo Completo
+
+```
+Usuário (Frontend) → Django View → ViaCEP → Django View → Usuário
+      ↓                     ↓           ↓           ↓          ↓
+Digita CEP           Valida/Sanitiza  Consulta   Processa   Preenche
+no formulário        e monta URL      API        resposta   campos
+```
+
+### Exemplo de Funcionamento
+
+1. O usuário digita "01001000".
+    
+2. O JavaScript detecta 8 dígitos e chama `/api/cep/01001000/`.
+    
+3. A View valida o CEP e consulta a API.
+    
+4. A ViaCEP retorna o endereço.
+    
+5. O backend formata e envia o JSON.
+    
+6. O frontend preenche rua, bairro, cidade e estado.
+    
+7. O usuário só completa o número e finaliza a compra.
+    
+---
 ## 🛠️ Criando um usuário no MySQL Workbench (Windows)
 
-Este tutorial mostra como criar um usuário no MySQL chamado `django_user`, com permissões completas para manipular bancos de dados.
-O exemplo foi feito no **MySQL Workbench**, rodando no **Windows**.
+Este guia explica como criar um usuário no MySQL chamado `django_user`, com permissão total para trabalhar com bancos de dados. O exemplo usa o **MySQL Workbench** no **Windows**.
 
 ### Pré-requisitos
 
 * MySQL Server instalado
 * MySQL Workbench instalado
-* Acesso a um usuário administrador do MySQL (ex: `root`)
+* Acesso a um usuário administrador do MySQL, como o `root`
 
 ### Passo a passo
 
-1. **Abrir o MySQL Workbench**
-
-   * Inicie o MySQL Workbench.
-   * Conecte-se ao servidor (ex.: *Local instance MySQL* ou *Local instance MySQL80*).
-
-2. **Acessar a tela de gerenciamento de usuários**
-
-   * Menu: **Server → Users and Privileges**
-
-3. **Criar um novo usuário**
-
-   * Aba **Users and Privileges**
-   * Clique em **Add Account**
-   * Configure:
-
-     * **Login Name**: `django_user`
-     * **Authentication Type**: *Standard*
-     * **Limit Connectivity to Hosts Matching**: `%` *(qualquer host; se quiser restringir, use `localhost` ou um IP específico)*
-     * **Password**: `senha123` *(recomendado; se usar outra senha, altere em `settings.py`)*
-     * **Confirm Password**: repetir a senha
-
-4. **Conceder privilégios**
-
-   * Aba **Administrative Roles**
-   * Selecione **DBA** *(Database Administrator → acesso total)*
-   * Opcional: em **Schema Privileges**, adicione privilégios para um schema específico (ex.: `stc`).
-
-5. **Aplicar alterações**
-
-   * Clique em **Apply**
+1. **Abra o MySQL Workbench**
+    
+    - Inicie o programa.
+        
+    - Conecte-se ao servidor, por exemplo **Local instance MySQL** ou **Local instance MySQL80**.
+        
+2. **Vá para a área de gerenciamento de usuários**
+    
+    - No menu, clique em **Server → Users and Privileges**.
+        
+3. **Crie o novo usuário**
+    
+    - Na aba **Users and Privileges**, clique em **Add Account**.
+        
+    - Preencha os campos:
+        
+        - **Login Name**: `django_user`
+            
+        - **Authentication Type**: Standard
+            
+        - **Limit Connectivity to Hosts Matching**: `%` (qualquer host; se quiser limitar, use `localhost` ou um IP específico)
+            
+        - **Password**: `senha123` (se usar outra, lembre de ajustar no `settings.py`)
+            
+        - **Confirm Password**: repita a senha
+            
+4. **Defina as permissões**
+    
+    - Abra a aba **Administrative Roles**.
+        
+    - Marque **DBA**, que dá acesso completo.
+        
+    - Se quiser, use **Schema Privileges** para liberar acesso a um schema específico, como `stc`.
+        
+5. **Confirme**
+    
+    - Clique em **Apply** para salvar tudo.
 
 ---
 ## Como criar um ambiente virtual (Visual Studio Code)

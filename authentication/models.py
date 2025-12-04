@@ -68,7 +68,7 @@ class Dealer(models.Model):
     dealer_name = models.CharField(max_length=20)
     dlpasswd = models.CharField(max_length=255)  
     created_at = models.DateTimeField(default=timezone.now)
-    # NOVO CAMPO - Para dealers que aparecem publicamente
+    #CAMPO - Para dealers que aparecem publicamente
     is_public = models.BooleanField(
         default=False, 
         verbose_name='Disponível Publicamente',
@@ -103,7 +103,7 @@ class Vehicle(models.Model):
     brand = models.CharField(max_length=20, choices=BRAND_CHOICES, verbose_name='Marca')
     body_type = models.CharField(max_length=20, choices=BODY_TYPE_CHOICES, verbose_name='Tipo de Carroceria')
     quantity_available = models.PositiveIntegerField(default=0, verbose_name='Quantidade Disponível')
-    # NOVO CAMPO PARA IMAGEM
+    #CAMPO PARA IMAGEM
     image = models.ImageField(
         upload_to='vehicles/',
         verbose_name='Imagem do Veículo',
@@ -122,7 +122,7 @@ class Vehicle(models.Model):
     def __str__(self):
         return f"{self.name} ({self.brand})"
 
-# NOVO MODELO PARA REGISTRAR COMPRAS
+#MODELO PARA REGISTRAR COMPRAS
 class Purchase(models.Model):
     GENDER_CHOICES = [
         ('M', 'Masculino'),
@@ -142,6 +142,17 @@ class Purchase(models.Model):
         decimal_places=2, 
         verbose_name='Salário Mensal'
     )
+    purchase_date = models.DateTimeField(auto_now_add=True, verbose_name='Data da Compra')
+    purchase_code = models.CharField(max_length=10, unique=True, verbose_name='Código da Compra')
+    
+    #CAMPOS DE ENDEREÇO
+    cep = models.CharField(max_length=9, verbose_name='CEP', blank=True)
+    street = models.CharField(max_length=100, verbose_name='Rua', blank=True)
+    number = models.CharField(max_length=10, verbose_name='Número', blank=True)
+    neighborhood = models.CharField(max_length=50, verbose_name='Bairro', blank=True)
+    city = models.CharField(max_length=50, verbose_name='Cidade', blank=True)
+    state = models.CharField(max_length=2, verbose_name='Estado', blank=True)
+    
     purchase_date = models.DateTimeField(auto_now_add=True, verbose_name='Data da Compra')
     purchase_code = models.CharField(max_length=10, unique=True, verbose_name='Código da Compra')
     

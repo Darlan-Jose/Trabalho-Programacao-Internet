@@ -9,7 +9,17 @@ import time
 from .forms import CustomAuthenticationForm, PurchaseForm  
 from .decorators import admin_required, dealer_required
 from .utils import increment_login_attempts, reset_login_attempts, is_account_locked, get_remaining_attempts
-from .models import Vehicle, Dealer, Purchase  
+from .models import Vehicle, Dealer, Purchase
+#API
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .serializers import PurchaseSerializer, VehicleSerializer, DealerSerializer
+
+import requests
+import json
+from django.views.decorators.csrf import csrf_exempt
 
 @csrf_protect
 @csrf_protect
@@ -271,6 +281,60 @@ def dealer_vehicles(request):
     set_secure_headers(response)
     return response
 
+@dealer_required
+def search_vehicles(request):
+    """
+    View para pesquisa de veículos por dealers
+    """
+    vehicles = Vehicle.objects.all().order_by('brand', 'name')
+    
+    # Obter parâmetros de pesquisa
+    search_name = request.GET.get('name', '').strip()
+    search_brand = request.GET.get('brand', '').strip()
+    search_body_type = request.GET.get('body_type', '').strip()
+    
+    # Aplicar filtros
+    if search_name:
+        vehicles = vehicles.filter(name__icontains=search_name)
+    
+    if search_brand and search_brand != 'ALL':
+        vehicles = vehicles.filter(brand=search_brand)
+    
+    if search_body_type and search_body_type != 'ALL':
+        vehicles = vehicles.filter(body_type=search_body_type)
+    
+    # Verificar se é uma pesquisa
+    is_search = any([search_name, search_brand != 'ALL', search_body_type != 'ALL'])
+    
+    # Estatísticas
+    total_vehicles = vehicles.count()
+    total_available = sum(vehicle.quantity_available for vehicle in vehicles)
+    
+    # Agrupar por marca para o template
+    vehicles_by_brand = {}
+    for vehicle in vehicles:
+        if vehicle.brand not in vehicles_by_brand:
+            vehicles_by_brand[vehicle.brand] = []
+        vehicles_by_brand[vehicle.brand].append(vehicle)
+    
+    context = {
+        'user': request.user,
+        'vehicles': vehicles,
+        'vehicles_by_brand': vehicles_by_brand,
+        'total_vehicles': total_vehicles,
+        'total_available': total_available,
+        'is_search': is_search,
+        'search_name': search_name,
+        'search_brand': search_brand,
+        'search_body_type': search_body_type,
+        'brand_choices': Vehicle.BRAND_CHOICES,
+        'body_type_choices': Vehicle.BODY_TYPE_CHOICES,
+    }
+    
+    response = render(request, 'authentication/vehicles.html', context)
+    set_secure_headers(response)
+    return response
+
 def public_dealers(request):
     """
     Página pública com lista de dealers disponíveis
@@ -408,3 +472,171 @@ def public_all_vehicles(request):
     response = render(request, 'authentication/public_vehicles.html', context)
     set_secure_headers(response)
     return response
+
+#APIs
+# API para listar dealers públicos
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_public_dealers(request):
+    """
+    API para listar concessionárias públicas
+    """
+    dealers = Dealer.objects.filter(is_public=True).order_by('dealer_name')
+    serializer = DealerSerializer(dealers, many=True)
+    return Response({
+        'count': dealers.count(),
+        'dealers': serializer.data
+    })
+
+# API para listar veículos públicos
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_public_vehicles(request):
+    """
+    API para listar veículos disponíveis
+    """
+    vehicles = Vehicle.objects.filter(quantity_available__gt=0).order_by('brand', 'name')
+    serializer = VehicleSerializer(vehicles, many=True)
+    return Response({
+        'count': vehicles.count(),
+        'vehicles': serializer.data
+    })
+
+# API para realizar compra
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_purchase_vehicle(request):
+    """
+    API para realizar compra de veículo
+    """
+    serializer = PurchaseSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        try:
+            purchase = serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Compra realizada com sucesso!',
+                'purchase_code': purchase.purchase_code,
+                'purchase_id': purchase.id,
+                'customer_name': purchase.customer_name
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'Erro ao processar compra: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return Response({
+        'success': False,
+        'message': 'Dados inválidos',
+        'errors': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
+
+# API para detalhes de uma compra
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_purchase_detail(request, purchase_code):
+    """
+    API para obter detalhes de uma compra pelo código
+    """
+    try:
+        purchase = Purchase.objects.get(purchase_code=purchase_code)
+        from .serializers import PurchaseDetailSerializer
+        serializer = PurchaseDetailSerializer(purchase)
+        return Response({
+            'success': True,
+            'purchase': serializer.data
+        })
+    except Purchase.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Compra não encontrada'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+# API para dashboard do dealer (API autenticada)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_dealer_stats(request):
+    """
+    API para estatísticas do dealer (requer autenticação)
+    """
+    if not request.user.groups.filter(name='Dealer').exists():
+        return Response({
+            'error': 'Acesso negado. Apenas dealers podem acessar esta API.'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    # Estatísticas básicas
+    total_vehicles = Vehicle.objects.count()
+    available_vehicles = Vehicle.objects.filter(quantity_available__gt=0).count()
+    total_purchases = Purchase.objects.count()
+    
+    return Response({
+        'total_vehicles': total_vehicles,
+        'available_vehicles': available_vehicles,
+        'total_purchases': total_purchases,
+        'user': request.user.username
+    })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@csrf_exempt
+def api_search_cep(request, cep):
+    """
+    API para buscar endereço pelo CEP usando ViaCEP
+    """
+    # Remove caracteres não numéricos
+    cep = ''.join(filter(str.isdigit, cep))
+    
+    if len(cep) != 8:
+        return Response({
+            'success': False,
+            'error': 'CEP deve conter 8 dígitos'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Faz a requisição para o ViaCEP
+        url = f'https://viacep.com.br/ws/{cep}/json/'
+        response = requests.get(url, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            if 'erro' not in data:
+                return Response({
+                    'success': True,
+                    'address': {
+                        'cep': data.get('cep', ''),
+                        'street': data.get('logradouro', ''),
+                        'neighborhood': data.get('bairro', ''),
+                        'city': data.get('localidade', ''),
+                        'state': data.get('uf', '')
+                    }
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'CEP não encontrado'
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({
+                'success': False,
+                'error': 'Erro ao consultar o ViaCEP'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    except requests.exceptions.Timeout:
+        return Response({
+            'success': False,
+            'error': 'Timeout na consulta do CEP'
+        }, status=status.HTTP_408_REQUEST_TIMEOUT)
+    except requests.exceptions.RequestException as e:
+        return Response({
+            'success': False,
+            'error': f'Erro de conexão: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'Erro interno: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
