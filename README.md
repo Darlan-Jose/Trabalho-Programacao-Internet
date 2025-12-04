@@ -194,12 +194,12 @@ street = models.CharField(max_length=100, verbose_name='Rua', blank=True)
 _Por quê:_ A compra precisa armazenar o endereço completo quando disponível.
 
 **2. View (views.py):**  
-
+https://github.com/Darlan-Jose/Trabalho-Programacao-Internet/blob/cab410fa7bfa32901ca23c3c1c52ee40ff60146d/authentication/views.py#L585
 
 _Por quê:_ Criei um endpoint próprio para tratar erros e permitir cache no futuro.
 
 **3. Template (purchase_form.html):**  
-
+https://github.com/Darlan-Jose/Trabalho-Programacao-Internet/blob/cab410fa7bfa32901ca23c3c1c52ee40ff60146d/authentication/templates/authentication/purchase_form.html#L34
 
 _Por quê:_ O usuário ganha uma experiência mais suave com preenchimento automático e busca manual.
 
