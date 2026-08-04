@@ -1,0 +1,26 @@
+# Ambiente Virtual
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.env
+
+# Arquivos do Python e Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+*.sqlite3
+local_settings.py
+
+# Configurações do seu IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Coleta de arquivos estáticos (geralmente gerados em produção)
+staticfiles/
+media/
